@@ -10,10 +10,13 @@ class PelangganPage extends StatefulWidget {
 
 class _PelangganPageState extends State<PelangganPage> {
   List<Pelanggan> pelangganList = [];
+  List<Pelanggan> filteredList = []; // LIST HASIL FILTER
   bool loading = true;
   String? errorMessage;
 
   final String apiUrl = "http://127.0.0.1:8000/api/pelanggan";
+
+  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -29,10 +32,13 @@ class _PelangganPageState extends State<PelangganPage> {
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
+
       if (response.statusCode == 200) {
         List data = jsonDecode(response.body);
+
         setState(() {
           pelangganList = data.map((e) => Pelanggan.fromJson(e)).toList();
+          filteredList = pelangganList; // TAMPILKAN SEMUA AWALNYA
           loading = false;
         });
       } else {
@@ -49,63 +55,137 @@ class _PelangganPageState extends State<PelangganPage> {
     }
   }
 
+  // ======================
+  // FUNGSI FILTER PENCARIAN
+  // ======================
+  void filterSearch(String keyword) {
+    final query = keyword.toLowerCase();
+
+    setState(() {
+      filteredList = pelangganList.where((p) {
+        final nama = p.nama.toLowerCase();
+        final alamat = (p.alamat ?? "").toLowerCase();
+        final hp = (p.noHp ?? "").toLowerCase();
+
+        return nama.contains(query) ||
+            alamat.contains(query) ||
+            hp.contains(query);
+      }).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xffF3F6FA),
+
       appBar: AppBar(
+        backgroundColor: Color(0xff0099FF),
+        elevation: 0,
+        centerTitle: true,
         title: Text(
           "Data Pelanggan",
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontFamily: "Poppins",
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1,
+          ),
         ),
-        backgroundColor: Color(0xff0099FF),
-        elevation: 3,
       ),
 
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xff0099FF),
-        elevation: 3,
         onPressed: () {},
-        child: Icon(Icons.add, size: 28),
+        child: Icon(Icons.add, color: Colors.white, size: 28),
       ),
 
-      body: RefreshIndicator(
-        onRefresh: fetchPelanggan,
-        child: loading
-            ? Center(child: CircularProgressIndicator())
-            : errorMessage != null
-            ? Center(child: Text(errorMessage!, style: TextStyle(fontSize: 16)))
-            : ListView.builder(
-                padding: EdgeInsets.all(16),
-                itemCount: pelangganList.length,
-                itemBuilder: (context, index) {
-                  final p = pelangganList[index];
-                  return _buildModernCard(p, index);
-                },
+      body: loading
+          ? Center(child: CircularProgressIndicator())
+          : errorMessage != null
+          ? Center(
+              child: Text(
+                errorMessage!,
+                style: TextStyle(fontSize: 16, fontFamily: "Poppins"),
               ),
-      ),
+            )
+          : Column(
+              children: [
+                // ===============================
+                // SEARCH BAR MODERN DI SINI
+                // ===============================
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 6,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: searchController,
+                      onChanged: filterSearch,
+                      style: TextStyle(fontFamily: "Poppins"),
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.search, color: Colors.grey),
+                        hintText: "Cari pelanggan...",
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                          fontFamily: "Poppins",
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // ===============================
+                // LIST DATA + FILTER
+                // ===============================
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: fetchPelanggan,
+                    child: ListView.builder(
+                      padding: EdgeInsets.all(16),
+                      itemCount: filteredList.length,
+                      itemBuilder: (context, index) {
+                        return _buildModernCard(filteredList[index], index);
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
+  // ==========================
+  // CARD MODERN (SAMA TRANSAKSI)
+  // ==========================
   Widget _buildModernCard(Pelanggan p, int index) {
     return AnimatedContainer(
-      duration: Duration(milliseconds: 400),
-      curve: Curves.easeOut,
-      margin: EdgeInsets.only(bottom: 14),
+      duration: Duration(milliseconds: 350),
+      margin: EdgeInsets.only(bottom: 16),
       child: Material(
         color: Colors.white,
         elevation: 3,
         shadowColor: Colors.black12,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
           onTap: () {},
           child: Padding(
             padding: EdgeInsets.all(18),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Avatar Circle
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: Color(0xff0099FF).withOpacity(0.15),
@@ -113,7 +193,6 @@ class _PelangganPageState extends State<PelangganPage> {
                 ),
                 SizedBox(width: 16),
 
-                // Text Content
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,8 +200,9 @@ class _PelangganPageState extends State<PelangganPage> {
                       Text(
                         p.nama,
                         style: TextStyle(
+                          fontFamily: "Poppins",
                           fontSize: 17,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       SizedBox(height: 6),
@@ -133,7 +213,10 @@ class _PelangganPageState extends State<PelangganPage> {
                           Expanded(
                             child: Text(
                               p.alamat ?? "-",
-                              style: TextStyle(color: Colors.grey[700]),
+                              style: TextStyle(
+                                fontFamily: "Poppins",
+                                color: Colors.grey[700],
+                              ),
                             ),
                           ),
                         ],
@@ -145,7 +228,10 @@ class _PelangganPageState extends State<PelangganPage> {
                           SizedBox(width: 4),
                           Text(
                             p.noHp ?? "-",
-                            style: TextStyle(color: Colors.grey[700]),
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontFamily: "Poppins",
+                            ),
                           ),
                         ],
                       ),
@@ -153,15 +239,8 @@ class _PelangganPageState extends State<PelangganPage> {
                   ),
                 ),
 
-                // Menu Button
                 PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      // TODO Edit
-                    } else if (value == 'delete') {
-                      // TODO Delete
-                    }
-                  },
+                  onSelected: (value) {},
                   itemBuilder: (context) => [
                     PopupMenuItem(value: 'edit', child: Text('Edit')),
                     PopupMenuItem(value: 'delete', child: Text('Hapus')),

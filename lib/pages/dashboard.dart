@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'pelanggan_page.dart';
 import 'paket_laundry_page.dart';
 import 'transaksi_page.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
 
 class DashboardLaundry extends StatelessWidget {
   final List<MenuItem> menuItems = [
@@ -14,12 +17,47 @@ class DashboardLaundry extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 0, 153, 255),
         elevation: 0,
-        title: const Text("Amanah Laundry"),
-        actions: const [Icon(Icons.notifications_none), SizedBox(width: 12)],
+        centerTitle: false,
+        titleSpacing: 0,
+
+        flexibleSpace: Padding(
+          padding: const EdgeInsets.only(left: 0),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 0),
+              child: Image.asset('assets/images/logo.png', height: 2000),
+            ),
+          ),
+        ),
+
+        title: const SizedBox(),
+
+        actions: [
+          Icon(Icons.notifications_none, color: Colors.white),
+          const SizedBox(width: 12),
+
+          /// 🔥 TOMBOL DARK MODE
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, child) {
+              return IconButton(
+                icon: Icon(
+                  themeProvider.isDark ? Icons.dark_mode : Icons.light_mode,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  themeProvider.toggleTheme();
+                },
+              );
+            },
+          ),
+
+          const SizedBox(width: 12),
+        ],
       ),
 
       body: SingleChildScrollView(

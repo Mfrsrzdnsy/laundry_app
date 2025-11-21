@@ -27,6 +27,7 @@ class _PaketPageState extends State<PaketPage> {
       loading = true;
       errorMessage = null;
     });
+
     try {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -52,73 +53,190 @@ class _PaketPageState extends State<PaketPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xffF5F7F8),
+
+      // ---------------- APPBAR ----------------
       appBar: AppBar(
-        title: Text("Paket Laundry"),
-        backgroundColor: Color(0xff0097A7),
+        backgroundColor: const Color(0xff0099FF),
+        elevation: 0,
+        centerTitle: true,
+        title: Text(
+          "Paket Laundry",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            letterSpacing: 1,
+          ),
+        ),
       ),
+
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Color(0xff0097A7),
-        onPressed: () {
-          // TODO: buka form tambah paket
-        },
-        child: Icon(Icons.add),
+        backgroundColor: Color(0xff0099FF),
+        onPressed: () {},
+        child: Icon(Icons.add, size: 28, color: Colors.white),
       ),
+
       body: RefreshIndicator(
         onRefresh: fetchPaket,
         child: loading
-            ? Center(child: CircularProgressIndicator())
+            ? Center(child: CircularProgressIndicator(color: Color(0xff0099FF)))
             : errorMessage != null
-            ? ListView(
-                children: [
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Text(errorMessage!, textAlign: TextAlign.center),
+            ? _buildErrorMessage()
+            : _buildPaketList(),
+      ),
+    );
+  }
+
+  // ---------------- ERROR MESSAGE ----------------
+  Widget _buildErrorMessage() {
+    return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Center(
+            child: Text(
+              errorMessage!,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.red[700],
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ---------------- PAKET LIST MODERN ----------------
+  Widget _buildPaketList() {
+    return ListView.separated(
+      padding: EdgeInsets.all(16),
+      separatorBuilder: (_, __) => SizedBox(height: 14),
+      itemCount: paketList.length,
+      itemBuilder: (context, index) {
+        final p = paketList[index];
+
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+
+          // ---------------- ROW CARD ----------------
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ICON LAUNDRY
+              Container(
+                padding: EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Color(0xff0099FF).withOpacity(.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  Icons.local_laundry_service,
+                  color: Color(0xff0099FF),
+                  size: 26,
+                ),
+              ),
+
+              SizedBox(width: 16),
+
+              // TEXT SECTION
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // NAMA PAKET
+                    Text(
+                      p.namaPaket,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Colors.black87,
+                      ),
+                    ),
+
+                    SizedBox(height: 6),
+
+                    // HARGA
+                    Text(
+                      "Rp ${p.harga}",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        color: Color(0xff0099FF),
+                      ),
+                    ),
+
+                    SizedBox(height: 6),
+
+                    // DURASI
+                    Row(
+                      children: [
+                        Icon(Icons.timer, size: 16, color: Colors.grey[600]),
+                        SizedBox(width: 6),
+                        Text(
+                          "${p.durasi ?? '-'} hari",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // MENU 3-DOT
+              PopupMenuButton<String>(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                icon: Icon(Icons.more_vert, size: 24),
+                onSelected: (value) {
+                  if (value == "edit") {}
+                  if (value == "delete") {}
+                },
+                itemBuilder: (_) => [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit, color: Colors.blue, size: 20),
+                        SizedBox(width: 10),
+                        Text("Edit"),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, color: Colors.red, size: 20),
+                        SizedBox(width: 10),
+                        Text("Hapus"),
+                      ],
                     ),
                   ),
                 ],
-              )
-            : ListView.separated(
-                padding: EdgeInsets.all(12),
-                separatorBuilder: (_, __) => SizedBox(height: 8),
-                itemCount: paketList.length,
-                itemBuilder: (context, index) {
-                  final p = paketList[index];
-                  return Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      title: Text(
-                        p.namaPaket,
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(
-                        "Harga: Rp ${p.harga} • Durasi: ${p.durasi ?? '-'} hari",
-                      ),
-                      trailing: PopupMenuButton<String>(
-                        onSelected: (value) {
-                          if (value == 'edit') {
-                            // TODO: buka form edit
-                          } else if (value == 'delete') {
-                            // TODO: panggil API delete
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          PopupMenuItem(value: 'edit', child: Text('Edit')),
-                          PopupMenuItem(value: 'delete', child: Text('Hapus')),
-                        ],
-                      ),
-                    ),
-                  );
-                },
               ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
