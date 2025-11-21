@@ -6,6 +6,8 @@ import '../models/transaksi.dart';
 import 'transaksi_detail_page.dart';
 
 class TransaksiPage extends StatefulWidget {
+  const TransaksiPage({super.key}); // FIXED: tambahkan key
+
   @override
   State<TransaksiPage> createState() => _TransaksiPageState();
 }
@@ -23,9 +25,9 @@ class _TransaksiPageState extends State<TransaksiPage> {
     fetchTransaksi();
   }
 
-  // ============================================
-  // FETCH DATA (SUDAH PAKAI MOUNTED CHECK)
-  // ============================================
+  // ================================
+  // FETCH API
+  // ================================
   Future<void> fetchTransaksi() async {
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -41,7 +43,7 @@ class _TransaksiPageState extends State<TransaksiPage> {
       } else {
         if (!mounted) return;
         setState(() {
-          errorMessage = "Server error: ${response.statusCode}";
+          errorMessage = "Server error ${response.statusCode}";
           loading = false;
         });
       }
@@ -54,9 +56,9 @@ class _TransaksiPageState extends State<TransaksiPage> {
     }
   }
 
-  // ============================================
+  // ================================
   // BADGE STATUS
-  // ============================================
+  // ================================
   Widget statusBadge(String status) {
     Color color;
 
@@ -77,7 +79,7 @@ class _TransaksiPageState extends State<TransaksiPage> {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15), // FIXED
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
@@ -91,42 +93,40 @@ class _TransaksiPageState extends State<TransaksiPage> {
     );
   }
 
-  // ============================================
-  // UI
-  // ============================================
+  // ================================
+  // UI HALAMAN
+  // ================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[150],
+      backgroundColor: Colors.grey[200],
 
       appBar: AppBar(
         backgroundColor: Color(0xff0099FF),
         elevation: 0,
-        title: Text("Data Transaksi"),
+        title: const Text("Data Transaksi"),
       ),
 
-      // tombol tambah transaksi
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xff0099FF),
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
         onPressed: () {
-          // TODO: buka halaman tambah transaksi
+          // TODO: tambah transaksi
         },
       ),
 
       body: loading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : errorMessage != null
           ? Center(child: Text(errorMessage!))
           : ListView.builder(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               itemCount: transaksiList.length,
               itemBuilder: (context, index) {
                 final t = transaksiList[index];
 
                 return GestureDetector(
                   onTap: () {
-                    // buka detail transaksi
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -135,12 +135,12 @@ class _TransaksiPageState extends State<TransaksiPage> {
                     );
                   },
                   child: Container(
-                    padding: EdgeInsets.all(16),
-                    margin: EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
                           color: Colors.black12,
                           blurRadius: 8,
@@ -149,63 +149,95 @@ class _TransaksiPageState extends State<TransaksiPage> {
                       ],
                     ),
 
-                    // Card isi
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // BARIS 1: INVOICE + STATUS
+                        // BARIS 1: INVOICE + STATUS + MENU TITIK 3
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              t.kodeInvoice,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xff0099FF),
+                            Expanded(
+                              child: Text(
+                                t.kodeInvoice,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff0099FF),
+                                ),
                               ),
                             ),
-                            statusBadge(t.status ?? "Unknown"),
+
+                            statusBadge(t.status),
+
+                            PopupMenuButton<String>(
+                              onSelected: (value) {
+                                if (value == "edit") {
+                                  // TODO: buka halaman edit transaksi
+                                  print("EDIT: ${t.id}");
+                                } else if (value == "delete") {
+                                  // TODO: konfirmasi hapus
+                                  print("HAPUS: ${t.id}");
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  value: "edit",
+                                  child: Row(
+                                    children: const [
+                                      Icon(Icons.edit, color: Colors.orange),
+                                      SizedBox(width: 10),
+                                      Text("Edit"),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: "delete",
+                                  child: Row(
+                                    children: const [
+                                      Icon(Icons.delete, color: Colors.red),
+                                      SizedBox(width: 10),
+                                      Text("Hapus"),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
 
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
 
-                        // Nama pelanggan
                         Text(
                           t.pelanggan.nama,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
 
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
 
-                        // Tanggal masuk
                         Text(
                           "Masuk: ${t.tglMasuk}",
-                          style: TextStyle(color: Colors.black54),
+                          style: const TextStyle(color: Colors.black54),
                         ),
 
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
 
-                        // Total
                         Text(
                           "Total: Rp ${t.total}",
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Colors.green,
                           ),
                         ),
 
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
 
-                        // TANDA LEBIH LANJUT
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
+                          children: const [
                             Text(
                               "Lihat Detail",
                               style: TextStyle(
