@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
-import 'pages/transaksi_page.dart';
+import 'pages/dashboard.dart';
 
 void main() {
-  runApp(MaterialApp(debugShowCheckedModeBanner: false, home: TransaksiPage()));
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: DashboardLaundry(),
+      // routes: { '/pelanggan': (_) => PelangganPage(), ... } // optional
+    ),
+  );
 }

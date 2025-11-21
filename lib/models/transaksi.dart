@@ -37,8 +37,8 @@ class DetailTransaksi {
   factory DetailTransaksi.fromJson(Map<String, dynamic> json) {
     return DetailTransaksi(
       id: json['id'],
-      qty: json['qty'].toDouble(),
-      subtotal: json['subtotal'],
+      qty: (json['qty'] ?? 0).toDouble(),
+      subtotal: json['subtotal'] ?? 0,
       paket: Paket.fromJson(json['paket']),
     );
   }
@@ -74,12 +74,21 @@ class Transaksi {
   final List<DetailTransaksi> detail;
   final int total;
 
+  final String status;
+  final String dibayar;
+  final String tglMasuk;
+  final String? tglSelesai; // <- tambahan wajib
+
   Transaksi({
     required this.id,
     required this.kodeInvoice,
     required this.pelanggan,
     required this.detail,
     required this.total,
+    required this.status,
+    required this.dibayar,
+    required this.tglMasuk,
+    this.tglSelesai,
   });
 
   factory Transaksi.fromJson(Map<String, dynamic> json) {
@@ -87,10 +96,18 @@ class Transaksi {
       id: json['id'],
       kodeInvoice: json['kode_invoice'],
       pelanggan: Pelanggan.fromJson(json['pelanggan']),
-      total: json['total'],
       detail: (json['detail'] as List)
           .map((e) => DetailTransaksi.fromJson(e))
           .toList(),
+      total: json['total'] ?? 0,
+      status: json['status'] ?? "Proses",
+      dibayar: json['dibayar'] ?? "Belum",
+
+      // FIX TANGGAL MASUK
+      tglMasuk: json['tgl_masuk']?.toString() ?? "-",
+
+      // FIX TANGGAL SELESAI (boleh null)
+      tglSelesai: json['tgl_selesai']?.toString(),
     );
   }
 }
